@@ -7,6 +7,7 @@ use ZxcvbnPhp\Matcher;
 class SpatialMatch extends Match
 {
     const SHIFTED_CHARACTERS = '~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?';
+    const AZERTY_SHIFTED_CHARACTERS = '1234567890°+AZERYTUIOP¨£QSDFGHJKLM%µ>WXCVBN?/.§';
 
     // Preset properties since adjacency graph is constant for qwerty keyboard and keypad.
     const KEYBOARD_STARTING_POSITION = 94;
@@ -106,8 +107,13 @@ class SpatialMatch extends Match
             $shiftedCount = 0;
 
             // Check if the initial character is shifted
+            // TODO : make shifted map dynamic from adjacency_graphs.json file
             if ($graphName === 'qwerty' || $graphName === 'dvorak') {
                 if (mb_strpos(self::SHIFTED_CHARACTERS, mb_substr($password, $i, 1)) !== false) {
+                    $shiftedCount++;
+                }
+            } elseif ($graphName === 'azerty') {
+                if (mb_strpos(self::AZERTY_SHIFTED_CHARACTERS, mb_substr($password, $i, 1)) !== false) {
                     $shiftedCount++;
                 }
             }
@@ -150,7 +156,7 @@ class SpatialMatch extends Match
                     $j += 1;
                 } else {
                     // otherwise push the pattern discovered so far, if any...
-                    
+
                     // Ignore length 1 or 2 chains.
                     if ($j - $i > 2) {
                         $result[] = [
@@ -200,6 +206,7 @@ class SpatialMatch extends Match
             // We want to be in the exact order below so as to match most closely with upstream, because when a match
             // can be found in multiple graphs (such as 789), the one that's listed first is that one that will be picked.
             $data = [
+                'azerty' => $data['azerty'],
                 'qwerty' => $data['qwerty'],
                 'dvorak' => $data['dvorak'],
                 'keypad' => $data['keypad'],
@@ -213,7 +220,7 @@ class SpatialMatch extends Match
 
     protected function getRawGuesses()
     {
-        if ($this->graph === 'qwerty' || $this->graph === 'dvorak') {
+        if ($this->graph === 'azerty' || $this->graph === 'qwerty' || $this->graph === 'dvorak') {
             $startingPosition = self::KEYBOARD_STARTING_POSITION;
             $averageDegree = self::KEYBOARD_AVERAGE_DEGREES;
         } else {

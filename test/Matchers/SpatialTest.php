@@ -73,6 +73,8 @@ class SpatialTest extends AbstractMatchTest
             ['hGFd',         'qwerty',     1, 2],
             ['/;p09876yhn',  'qwerty',     3, 0],
             ['Xdr%',         'qwerty',     1, 2],
+            ['12345',        'azerty',     1, 5],
+            ['-tfGHJ',       'azerty',     2, 3],
             ['159-',         'keypad',     1, 0],
             ['*84',          'keypad',     1, 0],
             ['/8520',        'keypad',     1, 0],
@@ -112,20 +114,21 @@ class SpatialTest extends AbstractMatchTest
     public function testShiftedCountForMultipleMatches()
     {
         $password = "!QAZ1qaz";
+
         $this->checkMatches(
             "shifted count is correct for two matches in a row",
             SpatialMatch::match($password),
             'spatial',
-            ['!QAZ', '1qaz'],
-            [[0, 3], [4, 7]],
+            ['!QAZ', 'QAZ', '1qaz', 'qaz'],
+            [[0, 3], [1, 3], [4, 7], [5, 7]],
             [
-                'graph' => ['qwerty', 'qwerty'],
-                'turns' => [1, 1],
-                'shiftedCount' => [4, 0],
+                'graph' => ['qwerty', 'azerty', 'qwerty', 'azerty'],
+                'turns' => [1, 2, 1, 2],
+                'shiftedCount' => [4, 3, 0, 0],
             ]
         );
     }
-    
+
     protected function getBaseGuessCount($token)
     {
         // KEYBOARD_STARTING_POSITIONS * KEYBOARD_AVERAGE_DEGREE * (length - 1)
