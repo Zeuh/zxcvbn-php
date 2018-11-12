@@ -1,14 +1,23 @@
 #!/usr/bin/python
+# -*- coding: UTF-8 -*-
+
 import sys
 import json as simplejson
 
 def usage():
     return '''
-constructs adjacency_graphs.json from QWERTY and DVORAK keyboard layouts
+constructs adjacency_graphs.json from AZERTY, QWERTY and DVORAK keyboard layouts
 
 usage:
 %s src/Matchers/adjacency_graphs.json
 ''' % sys.argv[0]
+
+azerty = ur'''
+²~ &1 é2 "3 '4 (5 -6 è7 _8 ç9 à0 )° +=
+    aA zZ eE rR tT yY uU iI oO pP ^" $£
+     qQ sS dD fF gG hH jJ kK lL mM ù% *µ
+   <> wW xX cC vV bB nN ,? ;. :/ !§
+'''
 
 qwerty = r'''
 `~ 1! 2@ 3# 4$ 5% 6^ 7& 8* 9( 0) -_ =+
@@ -95,6 +104,7 @@ if __name__ == '__main__':
         sys.exit(0)
     with open(sys.argv[1], 'w') as f:
         data = {
+            'azerty':     build_graph(azerty, True),
             'qwerty':     build_graph(qwerty, True),
             'dvorak':     build_graph(dvorak, True),
             'keypad':     build_graph(keypad, False),
