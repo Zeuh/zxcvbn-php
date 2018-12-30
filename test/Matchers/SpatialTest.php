@@ -42,13 +42,26 @@ class SpatialTest extends AbstractMatchTest
         );
     }
 
-    public function testSurroundedPattern()
+    public function surroundedPatternProvider()
     {
-        $pattern = "6tfGHJ";
+        return [
+            ['6tfGHJ', 'qwerty'],
+
+            ['-tfGHJ', 'azerty'],
+        ];
+    }
+
+    /**
+     * @dataProvider surroundedPatternProvider
+     * @param string $pattern
+     * @param string $graph
+     */
+    public function testSurroundedPattern($pattern, $graph)
+    {
         $password = "rz!{$pattern}%z";
 
         // for testing, make a subgraph that contains a single keyboard
-        $graphs = ['qwerty' => SpatialMatch::getAdjacencyGraphs()['qwerty']];
+        $graphs = [$graph => SpatialMatch::getAdjacencyGraphs()[$graph]];
 
         $this->checkMatches(
             "matches against spatial patterns surrounded by non-spatial patterns",
@@ -57,7 +70,7 @@ class SpatialTest extends AbstractMatchTest
             [$pattern],
             [[3, 8]],
             [
-                'graph' => ['qwerty'],
+                'graph' => [$graph],
                 'turns' => [2],
                 'shiftedCount' => [3],
             ]
@@ -139,11 +152,24 @@ class SpatialTest extends AbstractMatchTest
             * (strlen($token) - 1);
     }
 
-    public function testGuessesBasic()
+    public function guessesBasicProvider()
     {
-        $token = 'zxcvbn';
+        return [
+            ['zxcvbn', 'qwerty'],
+
+            ['wxcvbn', 'azerty'],
+        ];
+    }
+
+    /**
+     * @dataProvider guessesBasicProvider
+     * @param $token
+     * @param $graph
+     */
+    public function testGuessesBasic($token, $graph)
+    {
         $match = new SpatialMatch($token, 0, strlen($token) - 1, $token, [
-            'graph' => 'qwerty',
+            'graph' => $graph,
             'turns' => 1,
             'shifted_count' => 0,
         ]);
@@ -155,11 +181,24 @@ class SpatialTest extends AbstractMatchTest
         );
     }
 
-    public function testGuessesShifted()
+    public function guessesShiftedProvider()
     {
-        $token = 'ZxCvbn';
+        return [
+            ['ZxCvbn', 'qwerty'],
+
+            ['WxCvbn', 'azerty'],
+        ];
+    }
+
+    /**
+     * @dataProvider guessesShiftedProvider
+     * @param $token
+     * @param $graph
+     */
+    public function testGuessesShifted($token, $graph)
+    {
         $match = new SpatialMatch($token, 0, strlen($token) - 1, $token, [
-            'graph' => 'qwerty',
+            'graph' => $graph,
             'turns' => 1,
             'shifted_count' => 2,
         ]);
@@ -167,29 +206,27 @@ class SpatialTest extends AbstractMatchTest
         $this->assertEquals(
             $this->getBaseGuessCount($token) * (Match::binom(6, 2) + Match::binom(6, 1)),
             $match->getGuesses(),
-            "guesses is added for shifted keys (qwerty), similar to capitals in dictionary matching"
-        );
-
-        // same test with azerty graph
-        $token = 'WxCvbn';
-        $match = new SpatialMatch($token, 0, strlen($token) - 1, $token, [
-            'graph' => 'azerty',
-            'turns' => 1,
-            'shifted_count' => 2,
-        ]);
-
-        $this->assertEquals(
-            $this->getBaseGuessCount($token) * (Match::binom(6, 2) + Match::binom(6, 1)),
-            $match->getGuesses(),
-            "guesses is added for shifted keys (azerty), similar to capitals in dictionary matching"
+            "guesses is added for shifted keys ($graph), similar to capitals in dictionary matching"
         );
     }
 
-    public function testGuessesEverythingShifted()
+    public function guessesEverythingShiftedProvider()
     {
-        $token = 'ZXCVBN';
+        return [
+            ['ZXCVBN', 'qwerty'],
+
+            ['WXCVBN', 'azerty'],
+        ];
+    }
+    /**
+     * @dataProvider guessesEverythingShiftedProvider
+     * @param $token
+     * @param $graph
+     */
+    public function testGuessesEverythingShifted($token, $graph)
+    {
         $match = new SpatialMatch($token, 0, strlen($token) - 1, $token, [
-            'graph' => 'qwerty',
+            'graph' => $graph,
             'turns' => 1,
             'shifted_count' => 6,
         ]);
@@ -204,12 +241,21 @@ class SpatialTest extends AbstractMatchTest
     public function complexGuessProvider()
     {
         return [
-            ['6yhgf',        2, 19596.255319547865],
-            ['asde3w',       3, 203315.1579961936],
-            ['zxcft6yh',     3, 558460.6174911747],
-            ['xcvgy7uj',     3, 558460.6174911747],
-            ['ertghjm,.',    5, 30160744.32861352],
-            ['qwerfdsazxcv', 5, 175281377.64553562],
+            // qwerty
+            ['6yhgf',        2, 19596.255319547865, 'qwerty'],
+            ['asde3w',       3, 203315.1579961936,  'qwerty'],
+            ['zxcft6yh',     3, 558460.6174911747,  'qwerty'],
+            ['xcvgy7uj',     3, 558460.6174911747,  'qwerty'],
+            ['ertghjm,.',    5, 30160744.32861352,  'qwerty'],
+            ['qwerfdsazxcv', 5, 175281377.64553562, 'qwerty'],
+
+            // azerty
+            ['-yhgf',        2, 19596.255319547865, 'azerty'],
+            ['asde"z',       3, 203315.1579961936,  'azerty'],
+            ['wxcft-yh',     3, 558460.6174911747,  'azerty'],
+            ['xcvgyèuj',     3, 558460.6174911747,  'azerty'],
+            ['ertghj,;:',    5, 30160744.32861352,  'azerty'],
+            ['azerfdsqwxcv', 5, 175281377.64553562, 'azerty'],
         ];
     }
 
@@ -219,10 +265,10 @@ class SpatialTest extends AbstractMatchTest
      * @param int $turns
      * @param float $expected
      */
-    public function testGuessesComplexCase($token, $turns, $expected)
+    public function testGuessesComplexCase($token, $turns, $expected, $graph)
     {
         $match = new SpatialMatch($token, 0, strlen($token) - 1, $token, [
-            'graph' => 'qwerty',
+            'graph' => $graph,
             'turns' => $turns,
             'shifted_count' => 0,
         ]);
@@ -234,11 +280,26 @@ class SpatialTest extends AbstractMatchTest
         );
     }
 
-    public function testFeedbackStraightLine()
+    public function feedbackStraightLineProvider()
     {
-        $token = 'dfghjk';
+        return [
+            ['dfghjk', 'qwerty'],
+            ['zxcvbn', 'qwerty'],
+
+            ['dfghjk', 'azerty'],
+            ['wxcvbn', 'azerty'],
+        ];
+    }
+
+    /**
+     * @dataProvider feedbackStraightLineProvider
+     * @param string $token
+     * @param string $graph
+     */
+    public function testFeedbackStraightLine($token, $graph)
+    {
         $match = new SpatialMatch($token, 0, strlen($token) - 1, $token, [
-            'graph' => 'qwerty',
+            'graph' => $graph,
             'turns' => 1,
             'shifted_count' => 0,
         ]);
@@ -256,11 +317,24 @@ class SpatialTest extends AbstractMatchTest
         );
     }
 
-    public function testFeedbackWithTurns()
+    public function feedbackWithTurnsProvider()
     {
-        $token = 'xcvgy789';
+        return [
+            ['xcvgy789', 'qwerty'],
+
+            ['xcvgyè_ç', 'azerty'],
+        ];
+    }
+
+    /**
+     * @dataProvider feedbackWithTurnsProvider
+     * @param string $token
+     * @param string $graph
+     */
+    public function testFeedbackWithTurns($token, $graph)
+    {
         $match = new SpatialMatch($token, 0, strlen($token) - 1, $token, [
-            'graph' => 'qwerty',
+            'graph' => $graph,
             'turns' => 3,
             'shifted_count' => 0,
         ]);
