@@ -167,7 +167,21 @@ class SpatialTest extends AbstractMatchTest
         $this->assertEquals(
             $this->getBaseGuessCount($token) * (Match::binom(6, 2) + Match::binom(6, 1)),
             $match->getGuesses(),
-            "guesses is added for shifted keys, similar to capitals in dictionary matching"
+            "guesses is added for shifted keys (qwerty), similar to capitals in dictionary matching"
+        );
+
+        // same test with azerty graph
+        $token = 'WxCvbn';
+        $match = new SpatialMatch($token, 0, strlen($token) - 1, $token, [
+            'graph' => 'azerty',
+            'turns' => 1,
+            'shifted_count' => 2,
+        ]);
+
+        $this->assertEquals(
+            $this->getBaseGuessCount($token) * (Match::binom(6, 2) + Match::binom(6, 1)),
+            $match->getGuesses(),
+            "guesses is added for shifted keys (azerty), similar to capitals in dictionary matching"
         );
     }
 
